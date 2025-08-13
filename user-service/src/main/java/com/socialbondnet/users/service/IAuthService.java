@@ -1,0 +1,14 @@
+package com.socialbondnet.users.service;
+
+import com.socialbondnet.users.model.request.SendOtpRequest;
+import com.socialbondnet.users.model.request.SignUpRequest;
+import com.socialbondnet.users.model.request.VerifyOtpRequest;
+import com.socialbondnet.users.model.response.OtpResponse;
+import org.springframework.http.ResponseEntity;
+
+public interface IAuthService {
+    ResponseEntity<String> UserSignUp(SignUpRequest signUpRequest);
+
+    ResponseEntity<OtpResponse> sendOtpForEmailVerification(SendOtpRequest request);
+
+}
