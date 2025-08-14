@@ -36,11 +36,17 @@ public class AuthServiceImpl implements IAuthService {
         if (userRepository.existsUsersByEmail(signUpRequest.getEmail())) {
             return ResponseEntity.badRequest().body("Email đã được sử dụng");
         }
-        VerifyOtpRequest otpRequest = VerifyOtpRequest.builder()
-                .email(signUpRequest.getEmail())
-                .otpCode(signUpRequest.getOtpCode())
-                .otpType(OtpType.EMAIL_VERIFICATION)
-                .build();
+        VerifyOtpRequest otpRequest;
+        try {
+            otpRequest = VerifyOtpRequest.builder()
+                    .email(signUpRequest.getEmail())
+                    .otpCode(signUpRequest.getOtpCode())
+                    .otpType(OtpType.EMAIL_VERIFICATION)
+                    .build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
 
         boolean isValid = otpService.verifyOtp(otpRequest);
         if (!isValid) {
