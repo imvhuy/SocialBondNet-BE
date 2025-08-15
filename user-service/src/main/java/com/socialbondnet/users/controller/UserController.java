@@ -11,16 +11,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 public class UserController {
     private final IUserService userService;
 
 
     @GetMapping("/test/{userId}")
     public ProfileResponse test(@PathVariable String userId) {
-        String viewerId = "f9253b3a-da9c-4b5c-88d3-1b3b79dd2b40";
+        String viewerId = "41cb7867-3d10-4f93-86fb-2bd78e7fa32e";
         return userService.getPublicProfile(userId, viewerId);
-    @PostMapping("/test")
+    }
+
+    @GetMapping("/test")
     public String test() {
         return "test";
     }

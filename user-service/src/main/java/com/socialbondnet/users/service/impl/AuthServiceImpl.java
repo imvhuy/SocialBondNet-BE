@@ -1,9 +1,9 @@
 package com.socialbondnet.users.service.impl;
 
-import com.socialbondnet.users.constants.OtpType;
-import com.socialbondnet.users.entity.Profiles;
 import com.socialbondnet.users.entity.Roles;
+import com.socialbondnet.users.entity.UserProfile;
 import com.socialbondnet.users.entity.Users;
+import com.socialbondnet.users.enums.OtpType;
 import com.socialbondnet.users.enums.Visibility;
 import com.socialbondnet.users.model.request.SendOtpRequest;
 import com.socialbondnet.users.model.request.SignInRequest;
@@ -34,7 +34,6 @@ public class AuthServiceImpl implements IAuthService {
     private final OtpService otpService;
     private final RolesRepository rolesRepository;
     private final UserProfileRepository userProfileRepository;
-    private final ProfilesRepository profilesRepository;
     private final JwtServiceImpl jwtService;
 
     @Override

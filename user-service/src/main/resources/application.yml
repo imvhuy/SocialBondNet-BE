@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
     format-sql: true
     properties:
@@ -52,4 +52,4 @@ eureka:
 
 jwt:
   secret: ${jwt-secret}
-  expiration: 86400000  # in milliseconds
+  expiration: 1800000  # in milliseconds

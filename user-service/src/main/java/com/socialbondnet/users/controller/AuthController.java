@@ -11,6 +11,7 @@ import com.socialbondnet.users.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -28,6 +29,7 @@ public class AuthController {
         return authService.sendOtpForEmailVerification(request);
     }
     @PostMapping("/sign-in")
+    @Transactional
     public ResponseEntity<AuthResponse> signIn(@Valid @RequestBody SignInRequest request) {
         return authService.signIn(request);
     }
