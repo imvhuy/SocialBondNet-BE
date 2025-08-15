@@ -8,15 +8,26 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-          filters:
-            - StripPrefix=1
-            - name: CircuitBreaker
-              args:
-                name: userServiceCB
-                fallbackUri: forward:/fallback/users
+          enabled: false
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+jwt:
+  secret: ${jwt-secret}
+  expiration: 86400000  # in seconds
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway, health, info, routes
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+  server:
+    port: 8762

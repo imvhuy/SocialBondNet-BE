@@ -5,8 +5,10 @@ import com.socialbondnet.users.entity.Profiles;
 import com.socialbondnet.users.entity.Roles;
 import com.socialbondnet.users.entity.Users;
 import com.socialbondnet.users.model.request.SendOtpRequest;
+import com.socialbondnet.users.model.request.SignInRequest;
 import com.socialbondnet.users.model.request.SignUpRequest;
 import com.socialbondnet.users.model.request.VerifyOtpRequest;
+import com.socialbondnet.users.model.response.AuthResponse;
 import com.socialbondnet.users.model.response.OtpResponse;
 import com.socialbondnet.users.repository.ProfilesRepository;
 import com.socialbondnet.users.repository.RolesRepository;
@@ -30,6 +32,7 @@ public class AuthServiceImpl implements IAuthService {
     private final OtpService otpService;
     private final RolesRepository rolesRepository;
     private final ProfilesRepository profilesRepository;
+    private final JwtServiceImpl jwtService;
 
     @Override
     public ResponseEntity<String> UserSignUp(SignUpRequest signUpRequest) {
@@ -47,8 +50,7 @@ public class AuthServiceImpl implements IAuthService {
             return ResponseEntity.badRequest().body("Mã OTP không hợp lệ hoặc đã hết hạn");
         }
 
-        Roles defaultRole = rolesRepository.findByRoleName("USER")
-                .orElseThrow(() -> new IllegalStateException("Role USER chưa được khởi tạo"));
+        Roles defaultRole = rolesRepository.findByRoleName("USER");
 
         Users user = Users.builder()
                 .email(signUpRequest.getEmail())
@@ -83,6 +85,23 @@ public class AuthServiceImpl implements IAuthService {
 
         return new ResponseEntity<>(response, status);
     }
+    @Override
+    public ResponseEntity<AuthResponse> signIn(SignInRequest request) {
+        Users user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không chính xác"));
 
+        if (!bCryptPasswordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Email hoặc mật khẩu không chính xác");
+        }
+        if(!user.getIsActive().equals(true)) {
+            throw new RuntimeException("Tài khoản của bạn đã bị vô hiệu hóa");
+        }
+        String token = jwtService.generateToken(user);
 
+        return ResponseEntity.ok(AuthResponse.builder()
+                .token(token)
+                .email(user.getEmail())
+                .message("Đăng nhập thành công")
+                .build());
+    }
 }

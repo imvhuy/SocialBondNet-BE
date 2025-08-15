@@ -1,5 +1,6 @@
 package org.example.apigateway.config;
 
+import org.example.apigateway.filter.AuthorizationGatewayFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -7,16 +8,23 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GatewayConfig {
+
+    private final AuthorizationGatewayFilter authFilter;
+
+    public GatewayConfig(AuthorizationGatewayFilter authFilter) {
+        this.authFilter = authFilter;
+    }
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("user-service", r -> r.path("/api/users/**")
+                .route("user-service", r -> r
+                        .path("/api/users/**")
                         .filters(f -> f
-                                // Bỏ stripPrefix hoặc set = 0
-                                // .stripPrefix(1)
-                                .circuitBreaker(config -> config
-                                        .setName("userServiceCB")
-                                        .setFallbackUri("forward:/fallback/users")))
+                                .filter(authFilter.apply(new AuthorizationGatewayFilter.Config())))
+                        .uri("lb://user-service"))
+                .route("auth-service", r -> r
+                        .path("/api/auth/**")
                         .uri("lb://user-service"))
                 .build();
     }

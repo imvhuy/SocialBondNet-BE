@@ -22,4 +22,13 @@ public class FallbackController {
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
+    @GetMapping("/auth")
+    public ResponseEntity<Map<String, Object>> authFallback() {
+        Map<String, Object> response = Map.of(
+                "message", "Auth Service is not available.",
+                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "timestamp", Instant.now().toString()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
 }

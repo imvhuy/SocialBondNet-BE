@@ -1,8 +1,10 @@
 package com.socialbondnet.users.controller;
 
 import com.socialbondnet.users.model.request.SendOtpRequest;
+import com.socialbondnet.users.model.request.SignInRequest;
 import com.socialbondnet.users.model.request.SignUpRequest;
 import com.socialbondnet.users.model.request.VerifyOtpRequest;
+import com.socialbondnet.users.model.response.AuthResponse;
 import com.socialbondnet.users.model.response.OtpResponse;
 import com.socialbondnet.users.service.IAuthService;
 import com.socialbondnet.users.service.IUserService;
@@ -23,5 +25,9 @@ public class AuthController {
     @PostMapping("/send-otp")
     public ResponseEntity<OtpResponse> sendOtp(@Valid @RequestBody SendOtpRequest request) {
         return authService.sendOtpForEmailVerification(request);
+    }
+    @PostMapping("/sign-in")
+    public ResponseEntity<AuthResponse> signIn(@Valid @RequestBody SignInRequest request) {
+        return authService.signIn(request);
     }
 }
