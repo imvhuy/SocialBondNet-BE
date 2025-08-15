@@ -8,15 +8,17 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=1
-            - name: CircuitBreaker
-              args:
-                name: userServiceCB
-                fallbackUri: forward:/fallback/users
+          enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway, health, info, routes
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
+  server:
+    port: 8762

@@ -1,5 +1,5 @@
 package com.socialbondnet.users.model.request;
-import com.socialbondnet.users.constants.OtpType;
+import com.socialbondnet.users.enums.OtpType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

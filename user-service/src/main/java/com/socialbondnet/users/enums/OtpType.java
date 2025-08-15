@@ -1,4 +1,4 @@
-package com.socialbondnet.users.constants;
+package com.socialbondnet.users.enums;
 
 public enum OtpType {
     EMAIL_VERIFICATION,

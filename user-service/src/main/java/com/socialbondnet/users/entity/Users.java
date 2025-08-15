@@ -25,6 +25,9 @@ public class Users extends  BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(unique = true)
+    private String username;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -32,10 +35,10 @@ public class Users extends  BaseEntity {
     private String password;
 
     @Column(name = "is_active")
-    private Boolean isActive ;
+    private Boolean isActive;
 
     @Column(name = "is_private")
-    private Boolean isPrivate ;
+    private Boolean isPrivate;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -45,25 +48,11 @@ public class Users extends  BaseEntity {
     )
     private Set<Roles> roles = new HashSet<>();
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "account_type", length = 20)
-//    private AccountType accountType = AccountType.PERSONAL;
-
-//    @CreationTimestamp
-//    @Column(name = "created_at")
-//    private LocalDateTime createdAt;
-//
-//    @UpdateTimestamp
-//    @Column(name = "updated_at")
-//    private LocalDateTime updatedAt;
-//
-//    @Column(name = "deleted_at")
-//    private LocalDateTime deletedAt;
-
     // Relationships
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private UserProfile userProfile;
-//
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserProfile userProfile;
+
+
 //    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    private PrivacySetting privacySetting;
 //
@@ -85,7 +74,5 @@ public class Users extends  BaseEntity {
 //
 //    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    private List<Follow> followers;
-//
-//    @Column(name = "is_verified")
-//    private Boolean isVerified = false;
+
 }

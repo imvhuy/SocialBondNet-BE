@@ -1,6 +1,6 @@
 package com.socialbondnet.users.model.request;
 
-import com.socialbondnet.users.constants.OtpType;
+import com.socialbondnet.users.enums.OtpType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -1,14 +1,15 @@
 package com.socialbondnet.users.service.impl;
 
-import com.socialbondnet.users.constants.OtpType;
-import com.socialbondnet.users.entity.Profiles;
+import com.socialbondnet.users.enums.OtpType;
+import com.socialbondnet.users.entity.UserProfile;
 import com.socialbondnet.users.entity.Roles;
 import com.socialbondnet.users.entity.Users;
+import com.socialbondnet.users.enums.Visibility;
 import com.socialbondnet.users.model.request.SendOtpRequest;
 import com.socialbondnet.users.model.request.SignUpRequest;
 import com.socialbondnet.users.model.request.VerifyOtpRequest;
 import com.socialbondnet.users.model.response.OtpResponse;
-import com.socialbondnet.users.repository.ProfilesRepository;
+import com.socialbondnet.users.repository.UserProfileRepository;
 import com.socialbondnet.users.repository.RolesRepository;
 import com.socialbondnet.users.repository.UserRepository;
 import com.socialbondnet.users.service.IAuthService;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,9 +31,10 @@ public class AuthServiceImpl implements IAuthService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final OtpService otpService;
     private final RolesRepository rolesRepository;
-    private final ProfilesRepository profilesRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
+    @Transactional
     public ResponseEntity<String> UserSignUp(SignUpRequest signUpRequest) {
         if (userRepository.existsUsersByEmail(signUpRequest.getEmail())) {
             return ResponseEntity.badRequest().body("Email đã được sử dụng");
@@ -65,14 +68,14 @@ public class AuthServiceImpl implements IAuthService {
                 .build();
         userRepository.save(user);
 
-        Profiles userProfile = Profiles.builder()
-                .user(user)
-                .gender(signUpRequest.getGender())
-                .birthDate(signUpRequest.getDateOfBirth())
-                .fullName(signUpRequest.getFullName())
-                .build();
-        profilesRepository.save(userProfile);
-        return ResponseEntity.ok("Bạn đã đăng ký thành công. Vui lòng đăng nhập để tiếp tục.");
+        UserProfile profile = new UserProfile();
+        profile.setUser(user);
+        profile.setGender(signUpRequest.getGender());
+        profile.setBirthDate(signUpRequest.getDateOfBirth());
+        profile.setFullName(signUpRequest.getFullName());
+        profile.setVisibility(Visibility.PUBLIC);
+        userProfileRepository.save(profile);
+        return ResponseEntity.ok("Bạn đã đăng ký thành công.");
     }
     @Override
     public ResponseEntity<OtpResponse> sendOtpForEmailVerification(SendOtpRequest request) {

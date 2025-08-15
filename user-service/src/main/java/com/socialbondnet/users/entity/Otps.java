@@ -1,5 +1,5 @@
 package com.socialbondnet.users.entity;
-import com.socialbondnet.users.constants.OtpType;
+import com.socialbondnet.users.enums.OtpType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

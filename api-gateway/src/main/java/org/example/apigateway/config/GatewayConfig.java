@@ -10,13 +10,9 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("user-service", r -> r.path("/api/users/**")
-                        .filters(f -> f
-                                // Bỏ stripPrefix hoặc set = 0
-                                // .stripPrefix(1)
-                                .circuitBreaker(config -> config
-                                        .setName("userServiceCB")
-                                        .setFallbackUri("forward:/fallback/users")))
+                .route("user-service", r -> r.path("/api/users/")
+                        .uri("lb://user-service"))
+                .route("auth-service", r -> r.path("/api/auth/")
                         .uri("lb://user-service"))
                 .build();
     }

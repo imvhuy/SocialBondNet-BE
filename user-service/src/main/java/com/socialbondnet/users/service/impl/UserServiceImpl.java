@@ -1,17 +1,127 @@
 package com.socialbondnet.users.service.impl;
 
-import com.socialbondnet.users.constants.OtpType;
-import com.socialbondnet.users.model.request.SignUpRequest;
-import com.socialbondnet.users.model.request.VerifyOtpRequest;
+import com.socialbondnet.users.entity.UserProfile;
+import com.socialbondnet.users.entity.Users;
+import com.socialbondnet.users.enums.Visibility;
+import com.socialbondnet.users.model.dto.AccountInfoDto;
+import com.socialbondnet.users.model.dto.ProfileInfoDto;
+import com.socialbondnet.users.model.request.UpdateProfileRequest;
+import com.socialbondnet.users.model.response.ProfileResponse;
+import com.socialbondnet.users.model.response.UploadImageResponse;
+import com.socialbondnet.users.repository.UserProfileRepository;
 import com.socialbondnet.users.repository.UserRepository;
 import com.socialbondnet.users.service.IUserService;
+import com.socialbondnet.users.service.ObjectStorage;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements IUserService {
+    private final UserRepository usersRepository;
+    private final UserProfileRepository userProfileRepository;
+    private ObjectStorage storage;
+
+    @Override
+    public ProfileResponse  getPublicProfile(String userId, String viewerIdOrNull) {
+        Users u = usersRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        // Nếu tài khoản đánh dấu private ở Users hoặc visibility của profile != PUBLIC
+        boolean isOwner = viewerIdOrNull != null && viewerIdOrNull.equals(u.getId());
+        boolean visible = !Boolean.TRUE.equals(u.getIsPrivate())
+                && u.getUserProfile() != null
+                && u.getUserProfile().getVisibility() == Visibility.PUBLIC;
+
+        if (!isOwner && !visible) {
+            throw new EntityNotFoundException("Profile is private");
+        }
+        return toProfileResponse(u);
+    }
+
+    @Override
+    public ProfileResponse getMyProfile(String userId) {
+        Users u = usersRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return toProfileResponse(u);
+    }
+
+    @Override
+    public ProfileResponse updateProfile(String userId, UpdateProfileRequest req) {
+        Users u = usersRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        UserProfile p = u.getUserProfile();
+        if (p == null) {
+            p = new UserProfile();
+            p.setUser(u);
+        }
+        if (req.getFullName() != null) p.setFullName(req.getFullName());
+        if (req.getGender() != null)    p.setGender(req.getGender());
+        if (req.getBio() != null)       p.setBio(req.getBio());
+        if (req.getWebsite() != null)   p.setWebsite(req.getWebsite());
+        if (req.getLocation() != null)  p.setLocation(req.getLocation());
+        if (req.getBirthDate() != null) p.setBirthDate(req.getBirthDate());
+        if (req.getVisibility() != null) p.setVisibility(Visibility.valueOf(req.getVisibility()));
+
+        userProfileRepository.save(p);
+        u.setUserProfile(p);
+        return toProfileResponse(u);
+    }
+
+    @Override
+    public UploadImageResponse uploadAvatar(String userId, MultipartFile file) {
+        Users u = usersRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        UserProfile p = requireProfile(u);
+        String url = storage.upload("users/%s/avatar".formatted(u.getId()), file);
+        p.setAvatarUrl(url);
+        userProfileRepository.save(p);
+        return new UploadImageResponse(url);
+    }
+
+    private UserProfile requireProfile(Users u) {
+        if (u.getUserProfile() == null) {
+            UserProfile p = new UserProfile();
+            p.setUser(u);
+            return p;
+        }
+        return u.getUserProfile();
+    }
+
+    private ProfileResponse toProfileResponse(Users u) {
+        AccountInfoDto account = new AccountInfoDto(
+                u.getId(),
+                u.getEmail(),
+                u.getIsActive(),
+                u.getIsPrivate(),
+                u.getCreatedAt()
+        );
+
+        UserProfile p = u.getUserProfile();
+        ProfileInfoDto profile;
+        if (p == null) {
+            profile = new ProfileInfoDto(
+                    null, null, null, null, null,
+                    null, null, null,
+                    Visibility.PUBLIC.name()
+            );
+        } else {
+            profile = new ProfileInfoDto(
+                    p.getFullName(),
+                    p.getGender(),
+                    p.getBio(),
+                    p.getWebsite(),
+                    p.getLocation(),
+                    p.getAvatarUrl(),
+                    p.getCoverUrl(),
+                    p.getBirthDate(),
+                    p.getVisibility().name()
+            );
+        }
+
+        return new ProfileResponse(account, profile);
+    }
 
 }

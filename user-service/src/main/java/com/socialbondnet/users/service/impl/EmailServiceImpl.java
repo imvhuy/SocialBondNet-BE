@@ -1,7 +1,6 @@
 package com.socialbondnet.users.service.impl;
 
-import com.socialbondnet.users.constants.OtpType;
-import com.socialbondnet.users.repository.UserRepository;
+import com.socialbondnet.users.enums.OtpType;
 import com.socialbondnet.users.service.IEmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
