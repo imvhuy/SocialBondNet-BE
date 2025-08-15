@@ -14,11 +14,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
+
 public class Users extends  BaseEntity {
 
     @Id

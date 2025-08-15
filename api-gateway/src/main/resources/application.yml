@@ -9,6 +9,15 @@ spring:
       discovery:
         locator:
           enabled: false
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+jwt:
+  secret: ${jwt-secret}
+  expiration: 86400000  # in seconds
 
 management:
   endpoints:

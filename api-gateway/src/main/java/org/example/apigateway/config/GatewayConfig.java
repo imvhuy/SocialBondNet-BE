@@ -7,12 +7,23 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GatewayConfig {
+
+    private final AuthorizationGatewayFilter authFilter;
+
+    public GatewayConfig(AuthorizationGatewayFilter authFilter) {
+        this.authFilter = authFilter;
+    }
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("user-service", r -> r.path("/api/users/")
+                .route("user-service", r -> r
+                        .path("/api/users/**")
+                        .filters(f -> f
+                                .filter(authFilter.apply(new AuthorizationGatewayFilter.Config())))
                         .uri("lb://user-service"))
-                .route("auth-service", r -> r.path("/api/auth/")
+                .route("auth-service", r -> r
+                        .path("/api/auth/**")
                         .uri("lb://user-service"))
                 .build();
     }
