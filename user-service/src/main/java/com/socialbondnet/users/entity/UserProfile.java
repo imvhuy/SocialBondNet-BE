@@ -3,11 +3,8 @@ package com.socialbondnet.users.entity;
 import com.socialbondnet.users.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Cascade;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "profiles")

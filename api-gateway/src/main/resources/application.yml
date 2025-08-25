@@ -2,27 +2,34 @@ server:
   port: 8762
 
 spring:
-  application:
-    name: api-gateway
   cloud:
     gateway:
       server:
         webflux:
-          discovery:
-            locator:
-              enabled: false
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/auth/**, /api/users/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
 jwt:
   secret: ${jwt-secret}
-  expiration: 1800  # in seconds
+  expiration: 1800
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, routes
+        include: gateway, health, info, routes
   endpoint:
+    gateway:
+      access: none
     health:
       show-details: always
-  server:
-    port: 8762

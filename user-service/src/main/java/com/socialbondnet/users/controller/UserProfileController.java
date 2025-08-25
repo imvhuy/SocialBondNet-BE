@@ -5,6 +5,7 @@ import com.socialbondnet.users.model.response.ProfileResponse;
 import com.socialbondnet.users.model.response.PrivateProfileResponse;
 import com.socialbondnet.users.model.response.UploadImageResponse;
 import com.socialbondnet.users.service.IUserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -40,6 +41,29 @@ public class UserProfileController {
                 return ResponseEntity.ok(result);
             } else {
                 // Profile public - trả về full profile
+                return ResponseEntity.ok(result);
+            }
+        }
+    }
+
+    // Cách khác để lấy header bằng HttpServletRequest
+    @GetMapping("/profile-alt/{username}")
+    public ResponseEntity<?> getProfileAlternative(@PathVariable String username,
+                                                  HttpServletRequest request) {
+        String viewerId = request.getHeader("X-User-Id");
+        String viewerUsername = request.getHeader("X-Username");
+
+        // Logic tương tự như method getProfile
+        boolean isOwner = viewerUsername != null && viewerUsername.equals(username);
+
+        if (isOwner) {
+            ProfileResponse profile = userService.getMyProfile(viewerId);
+            return ResponseEntity.ok(profile);
+        } else {
+            Object result = userService.getPublicProfileByUsername(username, viewerId);
+            if (result instanceof PrivateProfileResponse) {
+                return ResponseEntity.ok(result);
+            } else {
                 return ResponseEntity.ok(result);
             }
         }
