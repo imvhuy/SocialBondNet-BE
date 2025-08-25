@@ -7,6 +7,7 @@ import com.socialbondnet.users.model.dto.AccountInfoDto;
 import com.socialbondnet.users.model.dto.ProfileInfoDto;
 import com.socialbondnet.users.model.request.UpdateProfileRequest;
 import com.socialbondnet.users.model.response.ProfileResponse;
+import com.socialbondnet.users.model.response.PrivateProfileResponse;
 import com.socialbondnet.users.model.response.UploadImageResponse;
 import com.socialbondnet.users.repository.UserProfileRepository;
 import com.socialbondnet.users.repository.UserRepository;
@@ -15,6 +16,7 @@ import com.socialbondnet.users.service.ObjectStorage;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -22,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserServiceImpl implements IUserService {
     private final UserRepository usersRepository;
     private final UserProfileRepository userProfileRepository;
-    private ObjectStorage storage;
+    private final ObjectStorage storage;
 
     @Override
     public ProfileResponse  getPublicProfile(String userId, String viewerIdOrNull) {
@@ -36,6 +38,32 @@ public class UserServiceImpl implements IUserService {
 
         if (!isOwner && !visible) {
             throw new EntityNotFoundException("Profile is private");
+        }
+        return toProfileResponse(u);
+    }
+
+    @Override
+    @Transactional
+    public Object getPublicProfileByUsername(String username, String viewerIdOrNull) {
+        Users u = usersRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        // Kiểm tra quyền xem profile
+        boolean isOwner = viewerIdOrNull != null && viewerIdOrNull.equals(u.getId());
+        boolean visible = !Boolean.TRUE.equals(u.getIsPrivate())
+                && u.getUserProfile() != null
+                && u.getUserProfile().getVisibility() == Visibility.PUBLIC;
+
+        if (!isOwner && !visible) {
+            // Thay vì ném exception, trả về PrivateProfileResponse
+            UserProfile profile = u.getUserProfile();
+            return PrivateProfileResponse.builder()
+                    .isPrivate(true)
+                    .message("This profile is private")
+                    .username(u.getUsername())
+                    .fullName(profile != null ? profile.getFullName() : null)
+                    .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
+                    .build();
         }
         return toProfileResponse(u);
     }
@@ -77,6 +105,17 @@ public class UserServiceImpl implements IUserService {
         UserProfile p = requireProfile(u);
         String url = storage.upload("users/%s/avatar".formatted(u.getId()), file);
         p.setAvatarUrl(url);
+        userProfileRepository.save(p);
+        return new UploadImageResponse(url);
+    }
+
+    @Override
+    public UploadImageResponse uploadCover(String userId, MultipartFile file) {
+        Users u = usersRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        UserProfile p = requireProfile(u);
+        String url = storage.upload("users/%s/cover".formatted(u.getId()), file);
+        p.setCoverUrl(url);
         userProfileRepository.save(p);
         return new UploadImageResponse(url);
     }

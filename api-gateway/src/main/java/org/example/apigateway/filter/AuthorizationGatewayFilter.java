@@ -25,6 +25,13 @@ public class AuthorizationGatewayFilter extends AbstractGatewayFilterFactory<Aut
     @Autowired
     private JwtUtil jwtUtil;
 
+    // Danh sách endpoints public - không cần JWT
+    private static final List<String> PUBLIC_PATHS = Arrays.asList(
+            "/api/auth/",
+            "/actuator/",
+            "/fallback/"
+    );
+
     public AuthorizationGatewayFilter() {
         super(Config.class);
     }
@@ -35,110 +42,75 @@ public class AuthorizationGatewayFilter extends AbstractGatewayFilterFactory<Aut
             ServerHttpRequest request = exchange.getRequest();
             String path = request.getURI().getPath();
 
-            logger.info("Processing request for path: {}", path);
+            logger.info("Processing request: {}", path);
 
-            // Skip cho public endpoints
-            if (isPublicEndpoint(path)) {
-                logger.info("Public endpoint, skipping authorization: {}", path);
+            // Skip JWT validation cho public endpoints
+            if (isPublicPath(path)) {
+                logger.info("Public endpoint, skipping authentication: {}", path);
                 return chain.filter(exchange);
             }
 
+            // Kiểm tra Authorization header
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                logger.warn("Missing or invalid Authorization header for path: {}", path);
-                // Không cần return error vì Spring Security sẽ xử lý
-                return chain.filter(exchange);
+                logger.warn("Missing or invalid Authorization header for: {}", path);
+                return handleUnauthorized(exchange, "Missing or invalid Authorization header");
             }
 
             String token = authHeader.substring(7);
+
             try {
-                if (jwtUtil.validateToken(token)) {
-                    String username = jwtUtil.extractUsername(token);
-                    String role = jwtUtil.extractRole(token);
-                    Object userId = jwtUtil.extractUserId(token);
-
-                    logger.info("User: {}, Role: {}, accessing path: {}", username, role, path);
-
-                    // Thêm user info vào headers cho downstream services
-                    ServerHttpRequest modifiedRequest = request.mutate()
-                            .header("X-User-Id", userId != null ? userId.toString() : "")
-                            .header("X-Username", username)
-                            .header("X-User-Role", role)
-                            .header("Authorization", authHeader)
-                            .build();
-
-                    logger.info("Request enriched with user info for: {}", username);
-                    return chain.filter(exchange.mutate().request(modifiedRequest).build());
+                // Validate JWT token
+                if (!jwtUtil.validateToken(token)) {
+                    logger.warn("Invalid JWT token for: {}", path);
+                    return handleUnauthorized(exchange, "Invalid or expired token");
                 }
-            } catch (Exception e) {
-                logger.error("Error processing token for path: {}, error: {}", path, e.getMessage());
-                // Để Spring Security xử lý authentication error
-            }
 
-            return chain.filter(exchange);
+                // Extract user information từ token
+                String username = jwtUtil.extractUsername(token);
+                String role = jwtUtil.extractRole(token);
+                String userId = jwtUtil.extractUserId(token) != null ?
+                        jwtUtil.extractUserId(token).toString() : username;
+
+                logger.info("Authentication successful - User: {}, Role: {}", username, role);
+
+                // Thêm user info vào headers để downstream services sử dụng
+                ServerHttpRequest modifiedRequest = request.mutate()
+                        .header("X-User-Id", userId)
+                        .header("X-Username", username)
+                        .header("X-User-Role", role)
+                        .build();
+
+                return chain.filter(exchange.mutate().request(modifiedRequest).build());
+
+            } catch (Exception e) {
+                logger.error("JWT processing error for {}: {}", path, e.getMessage());
+                return handleUnauthorized(exchange, "Authentication failed");
+            }
         };
     }
 
-    private boolean isPublicEndpoint(String path) {
-        List<String> publicPaths = Arrays.asList(
-                "/api/auth/",     // Authentication endpoints
-                "/actuator/",     // Actuator endpoints
-                "/fallback/"      // Fallback endpoints
-        );
-
-        return publicPaths.stream().anyMatch(path::startsWith);
+    private boolean isPublicPath(String path) {
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
 
-    private boolean hasRequiredRole(String path, String token) {
-        try {
-            String role = jwtUtil.extractRole(token);
-
-            // Admin có quyền truy cập tất cả
-            if ("ADMIN".equals(role)) {
-                return true;
-            }
-
-            // User endpoints - USER và ADMIN có thể truy cập
-            if (path.startsWith("/api/users/")) {
-                return "USER".equals(role) || "ADMIN".equals(role);
-            }
-
-            // Post endpoints (nếu có) - USER, MODERATOR, ADMIN
-            if (path.startsWith("/api/posts/")) {
-                return "USER".equals(role) || "MODERATOR".equals(role) || "ADMIN".equals(role);
-            }
-
-            // Admin endpoints (nếu có) - chỉ ADMIN
-            if (path.startsWith("/api/admin/")) {
-                return "ADMIN".equals(role);
-            }
-
-            // Moderator endpoints (nếu có) - MODERATOR và ADMIN
-            if (path.startsWith("/api/moderator/")) {
-                return "MODERATOR".equals(role) || "ADMIN".equals(role);
-            }
-
-            // Default: authenticated users có thể truy cập
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error checking role for path: {}, error: {}", path, e.getMessage());
-            return false;
-        }
-    }
-
-    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
+    private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
         ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(httpStatus);
+        response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().add("Content-Type", "application/json");
 
-        String errorBody = String.format("{\"error\":\"%s\", \"status\":%d, \"timestamp\":\"%s\"}",
-                err, httpStatus.value(), java.time.Instant.now().toString());
-        var dataBuffer = response.bufferFactory().wrap(errorBody.getBytes());
+        String body = String.format(
+                "{\"error\":\"%s\",\"status\":401,\"timestamp\":\"%s\",\"path\":\"%s\"}",
+                message,
+                java.time.Instant.now().toString(),
+                exchange.getRequest().getURI().getPath()
+        );
 
-        return response.writeWith(Mono.just(dataBuffer));
+        var buffer = response.bufferFactory().wrap(body.getBytes());
+        return response.writeWith(Mono.just(buffer));
     }
 
     public static class Config {
+        // Configuration class nếu cần
     }
 }

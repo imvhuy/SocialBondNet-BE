@@ -18,16 +18,6 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // User Service Routes
-                .route("user-service", r -> r
-                        .path("/api/users/**")
-                        .filters(f -> f
-                                .filter(authFilter.apply(new AuthorizationGatewayFilter.Config()))
-                                .circuitBreaker(config -> config
-                                        .setName("user-service-cb")
-                                        .setFallbackUri("forward:/fallback/users")))
-                        .uri("lb://user-service"))
-
                 // Auth Service Routes (public, không cần auth filter)
                 .route("auth-service", r -> r
                         .path("/api/auth/**")
@@ -37,25 +27,34 @@ public class GatewayConfig {
                                         .setFallbackUri("forward:/fallback/auth")))
                         .uri("lb://user-service"))
 
-                // Future Post Service Routes (chuẩn bị sẵn)
-                .route("post-service", r -> r
-                        .path("/api/posts/**")
+                // Profile Service Routes (semi-public, không cần auth filter)
+                // Vì profile có thể xem public, service sẽ quyết định hiển thị gì
+                .route("profile-service", r -> r
+                        .path("/api/profile/**")
                         .filters(f -> f
-                                .filter(authFilter.apply(new AuthorizationGatewayFilter.Config()))
                                 .circuitBreaker(config -> config
-                                        .setName("post-service-cb")
-                                        .setFallbackUri("forward:/fallback/posts")))
-                        .uri("lb://post-service"))
+                                        .setName("profile-service-cb")
+                                        .setFallbackUri("forward:/fallback/profile")))
+                        .uri("lb://user-service"))
 
-                // Admin Service Routes (chuẩn bị sẵn)
-                .route("admin-service", r -> r
-                        .path("/api/admin/**")
+                // User Service Routes (protected, cần auth filter)
+                .route("user-service", r -> r
+                        .path("/api/users/**")
                         .filters(f -> f
                                 .filter(authFilter.apply(new AuthorizationGatewayFilter.Config()))
                                 .circuitBreaker(config -> config
-                                        .setName("admin-service-cb")
-                                        .setFallbackUri("forward:/fallback/admin")))
-                        .uri("lb://admin-service"))
+                                        .setName("user-service-cb")
+                                        .setFallbackUri("forward:/fallback/users")))
+                        .uri("lb://user-service"))
+
+                // File Service Routes (public for serving uploaded files)
+                .route("file-service", r -> r
+                        .path("/files/**")
+                        .filters(f -> f
+                                .circuitBreaker(config -> config
+                                        .setName("file-service-cb")
+                                        .setFallbackUri("forward:/fallback/files")))
+                        .uri("lb://user-service"))
 
                 .build();
     }

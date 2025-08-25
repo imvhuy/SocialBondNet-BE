@@ -55,10 +55,13 @@ public class AuthServiceImpl implements IAuthService {
 
         Roles defaultRole = rolesRepository.findByRoleName("USER");
 
+        String[] s = signUpRequest.getEmail().split("@");
+        String tmp = s[0];
         Users user = Users.builder()
                 .email(signUpRequest.getEmail())
                 .password(bCryptPasswordEncoder.encode(signUpRequest.getPassword()))
                 .roles(new HashSet<>(Set.of(defaultRole)))
+                .username(tmp)
                 .isActive(true)
                 .isPrivate(false)
                 .build();

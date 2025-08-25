@@ -1,10 +1,10 @@
 package org.example.apigateway.config;
 
+import org.example.apigateway.filter.AuthorizationGatewayFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -18,32 +18,12 @@ import java.util.List;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationWebFilter jwtAuthenticationWebFilter;
-
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Thêm JWT filter trước authentication filter
-                .addFilterBefore(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-
-                .authorizeExchange(exchanges -> exchanges
-                        // Public endpoints - không cần authentication
-                        .pathMatchers("/api/auth/**").permitAll()
-                        .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/fallback/**").permitAll()
-
-                        // Protected endpoints - Spring Security sẽ kiểm tra authentication
-                        .pathMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
-                        .pathMatchers("/api/posts/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
-                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Mọi request khác cần authentication
-                        .anyExchange().authenticated()
-                )
+                .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .build();
@@ -52,10 +32,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "X-User-Id", "X-Username"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
