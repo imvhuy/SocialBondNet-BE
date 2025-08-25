@@ -22,7 +22,7 @@ public class UserController {
         return userService.getPublicProfile(userId, viewerId);
     }
 
-    @GetMapping("/test")
+    @PostMapping("/test")
     public String test() {
         return "test";
     }

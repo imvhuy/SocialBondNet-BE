@@ -1,5 +1,6 @@
 package org.example.apigateway.config;
 
+import org.example.apigateway.filter.JwtAuthenticationWebFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,26 +27,14 @@ public class SecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Thêm JWT filter trước authentication filter
-                .addFilterBefore(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-
                 .authorizeExchange(exchanges -> exchanges
-                        // Public endpoints - không cần authentication
-                        .pathMatchers("/api/auth/**").permitAll()
-                        .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/fallback/**").permitAll()
-
-                        // Protected endpoints - Spring Security sẽ kiểm tra authentication
-                        .pathMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
-                        .pathMatchers("/api/posts/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
-                        .pathMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Mọi request khác cần authentication
+                        .pathMatchers(
+                            "/api/auth/**"
+                        ).permitAll()
+                        .pathMatchers("/api/users/test").hasRole("ADMIN")
                         .anyExchange().authenticated()
                 )
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                .addFilterAt(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 

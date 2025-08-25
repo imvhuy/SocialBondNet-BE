@@ -20,7 +20,6 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-
 public class Users extends  BaseEntity {
 
     @Id

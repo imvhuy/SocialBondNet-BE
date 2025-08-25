@@ -32,8 +32,26 @@ public class JwtUtil {
 
     @SuppressWarnings("unchecked")
     public String extractRole(String token) {
-        List<String> roles = extractClaim(token, claims -> (List<String>) claims.get("roles"));
-        return roles != null && !roles.isEmpty() ? roles.get(0) : null;
+        Claims claims = extractAllClaims(token);
+        Object roleObj = claims.get("roles");
+        if (roleObj instanceof List) {
+            List<String> roles = (List<String>) roleObj;
+            return roles != null && !roles.isEmpty() ? roles.get(0) : null;
+        }
+
+        roleObj = claims.get("role");
+        if (roleObj != null) {
+            return roleObj.toString();
+        }
+
+        roleObj = claims.get("authorities");
+        if (roleObj instanceof List) {
+            List<String> authorities = (List<String>) roleObj;
+            return authorities != null && !authorities.isEmpty() ?
+                    authorities.get(0).replace("ROLE_", "") : null;
+        }
+
+        return null;
     }
 
     public UUID extractUserId(String token) {
