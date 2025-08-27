@@ -52,4 +52,28 @@ public class LocalObjectStorageImpl implements ObjectStorage {
             throw new RuntimeException("Failed to upload file: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public void delete(String fileUrl) {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return; // Không có file để xóa
+        }
+
+        try {
+            // Chuyển đổi URL thành đường dẫn file local
+            // URL format: BASE_URL/keyPrefix_folder/filename
+            // Ví dụ: http://localhost:8080/files/users_userId_avatar/filename.jpg
+            String relativePath = fileUrl.replace(BASE_URL + "/", "");
+            Path filePath = Paths.get(UPLOAD_DIR).resolve(relativePath);
+
+            // Xóa file nếu tồn tại
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                System.out.println("Deleted old file: " + filePath);
+            }
+        } catch (Exception e) {
+            // Log error nhưng không throw exception để không làm gián đoạn quá trình upload
+            System.err.println("Failed to delete file: " + fileUrl + " - " + e.getMessage());
+        }
+    }
 }

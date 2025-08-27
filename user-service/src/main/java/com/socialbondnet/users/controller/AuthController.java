@@ -1,13 +1,13 @@
 package com.socialbondnet.users.controller;
 
+import com.socialbondnet.users.model.request.RefreshTokenRequest;
 import com.socialbondnet.users.model.request.SendOtpRequest;
 import com.socialbondnet.users.model.request.SignInRequest;
 import com.socialbondnet.users.model.request.SignUpRequest;
-import com.socialbondnet.users.model.request.VerifyOtpRequest;
 import com.socialbondnet.users.model.response.AuthResponse;
 import com.socialbondnet.users.model.response.OtpResponse;
+import com.socialbondnet.users.model.response.UserInfoResponse;
 import com.socialbondnet.users.service.IAuthService;
-import com.socialbondnet.users.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,5 +32,15 @@ public class AuthController {
     @Transactional
     public ResponseEntity<AuthResponse> signIn(@Valid @RequestBody SignInRequest request) {
         return authService.signIn(request);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refreshToken(request);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoResponse> getCurrentUser(@RequestHeader("Authorization") String authorizationHeader) {
+        return authService.getCurrentUser(authorizationHeader);
     }
 }

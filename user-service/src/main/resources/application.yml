@@ -36,6 +36,11 @@ spring:
 server:
   port: 8081
 
+jwt:
+  secret: ${jwt-secret}
+  expiration: 1800
+  refresh-expiration: 3600
+
 management:
   endpoints:
     web:
@@ -55,7 +60,3 @@ eureka:
     hostname: localhost
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
-
-jwt:
-  secret: ${jwt-secret}
-  expiration: 1800  # in milliseconds

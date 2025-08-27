@@ -103,6 +103,13 @@ public class UserServiceImpl implements IUserService {
         Users u = usersRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         UserProfile p = requireProfile(u);
+
+        // Xóa avatar cũ trước khi upload avatar mới
+        String oldAvatarUrl = p.getAvatarUrl();
+        if (oldAvatarUrl != null && !oldAvatarUrl.isEmpty()) {
+            storage.delete(oldAvatarUrl);
+        }
+
         String url = storage.upload("users/%s/avatar".formatted(u.getId()), file);
         p.setAvatarUrl(url);
         userProfileRepository.save(p);
@@ -114,6 +121,13 @@ public class UserServiceImpl implements IUserService {
         Users u = usersRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         UserProfile p = requireProfile(u);
+
+        // Xóa cover cũ trước khi upload cover mới
+        String oldCoverUrl = p.getCoverUrl();
+        if (oldCoverUrl != null && !oldCoverUrl.isEmpty()) {
+            storage.delete(oldCoverUrl);
+        }
+
         String url = storage.upload("users/%s/cover".formatted(u.getId()), file);
         p.setCoverUrl(url);
         userProfileRepository.save(p);
