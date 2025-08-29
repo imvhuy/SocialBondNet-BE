@@ -38,8 +38,8 @@ server:
 
 jwt:
   secret: ${jwt-secret}
-  expiration: 1800
-  refresh-expiration: 3600
+  expiration: 180000
+  refresh-expiration: 3600000
 
 management:
   endpoints:

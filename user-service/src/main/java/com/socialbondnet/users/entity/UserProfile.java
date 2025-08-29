@@ -21,7 +21,7 @@ public class UserProfile extends BaseEntity{
     @MapsId
     @JoinColumn(name = "user_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_user_profile_user"))
-    private Users user;   // KHÔNG đặt cascade ở đây
+    private Users user;
 
     @Column(length = 80)
     private String fullName;

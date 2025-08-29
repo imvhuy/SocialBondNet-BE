@@ -1,5 +1,6 @@
 package com.socialbondnet.users.model.response;
 
+import com.socialbondnet.users.enums.Visibility;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class UserInfoResponse {
     private String gender;
     private LocalDateTime birthDate;
     private String avatarUrl;
-    private Boolean isPrivate;
+    private Visibility visibility;
     private List<String> roles;
     private List<String> permissions;
     private String message;

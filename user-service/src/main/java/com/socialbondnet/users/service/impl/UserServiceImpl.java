@@ -32,9 +32,7 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         // Nếu tài khoản đánh dấu private ở Users hoặc visibility của profile != PUBLIC
         boolean isOwner = viewerIdOrNull != null && viewerIdOrNull.equals(u.getId());
-        boolean visible = !Boolean.TRUE.equals(u.getIsPrivate())
-                && u.getUserProfile() != null
-                && u.getUserProfile().getVisibility() == Visibility.PUBLIC;
+        boolean visible = u.getUserProfile().getVisibility() == Visibility.PUBLIC;
 
         if (!isOwner && !visible) {
             throw new EntityNotFoundException("Profile is private");
@@ -48,18 +46,15 @@ public class UserServiceImpl implements IUserService {
         Users u = usersRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // Kiểm tra quyền xem profile
         boolean isOwner = viewerIdOrNull != null && viewerIdOrNull.equals(u.getId());
-        boolean visible = !Boolean.TRUE.equals(u.getIsPrivate())
-                && u.getUserProfile() != null
-                && u.getUserProfile().getVisibility() == Visibility.PUBLIC;
+        UserProfile profile = u.getUserProfile();
+        boolean visible = profile != null && profile.getVisibility() == Visibility.PUBLIC;
 
         if (!isOwner && !visible) {
             // Thay vì ném exception, trả về PrivateProfileResponse
-            UserProfile profile = u.getUserProfile();
             return PrivateProfileResponse.builder()
-                    .isPrivate(true)
-                    .message("This profile is private")
+                    .userId(u.getId())
+                    .visibility(profile != null ? profile.getVisibility() : Visibility.PRIVATE)
                     .username(u.getUsername())
                     .fullName(profile != null ? profile.getFullName() : null)
                     .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
@@ -148,8 +143,8 @@ public class UserServiceImpl implements IUserService {
                 u.getId(),
                 u.getEmail(),
                 u.getIsActive(),
-                u.getIsPrivate(),
-                u.getCreatedAt()
+                u.getCreatedAt(),
+                u.getUserProfile() != null ? u.getUserProfile().getVisibility() : Visibility.PUBLIC
         );
 
         UserProfile p = u.getUserProfile();

@@ -66,7 +66,6 @@ public class AuthServiceImpl implements IAuthService {
                 .roles(new HashSet<>(Set.of(defaultRole)))
                 .username(tmp)
                 .isActive(true)
-                .isPrivate(false)
                 .build();
         userRepository.save(user);
 
@@ -75,7 +74,7 @@ public class AuthServiceImpl implements IAuthService {
         profile.setGender(signUpRequest.getGender());
         profile.setBirthDate(signUpRequest.getDateOfBirth());
         profile.setFullName(signUpRequest.getFullName());
-        profile.setVisibility(Visibility.PUBLIC);
+        profile.setVisibility(Visibility.PUBLIC);  // Chỉ set visibility ở UserProfile
         userProfileRepository.save(profile);
         return ResponseEntity.ok("Bạn đã đăng ký thành công.");
     }
@@ -218,7 +217,7 @@ public class AuthServiceImpl implements IAuthService {
                     .gender(profile != null ? profile.getGender() : null)
                     .birthDate(profile != null ? profile.getBirthDate() : null)
                     .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
-                    .isPrivate(user.getIsPrivate())
+                    .visibility(profile != null ? profile.getVisibility() : Visibility.PUBLIC)
                     .roles(roleNames)
                     .permissions(getPermissionsByRoles(roleNames))
                     .message("Lấy thông tin người dùng thành công")

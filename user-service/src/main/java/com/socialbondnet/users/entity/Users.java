@@ -38,9 +38,6 @@ public class Users extends  BaseEntity {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @Column(name = "is_private")
-    private Boolean isPrivate;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",

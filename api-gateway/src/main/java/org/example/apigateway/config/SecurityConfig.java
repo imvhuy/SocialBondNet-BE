@@ -33,7 +33,8 @@ public class SecurityConfig {
                             "/api/auth/**",
                                 "/api/profile/**",
                                 "/files/**",
-                                "/api/posts/**"
+                                "/api/posts/**",
+                                "/api/follows/**"
 
                         ).permitAll()
                         .pathMatchers("/api/users/test").hasRole("ADMIN")
