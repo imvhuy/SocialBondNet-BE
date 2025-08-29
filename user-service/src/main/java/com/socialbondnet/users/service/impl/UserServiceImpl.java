@@ -7,6 +7,7 @@ import com.socialbondnet.users.model.dto.AccountInfoDto;
 import com.socialbondnet.users.model.dto.ProfileInfoDto;
 import com.socialbondnet.users.model.request.UpdateProfileRequest;
 import com.socialbondnet.users.model.response.ProfileResponse;
+import com.socialbondnet.users.model.response.ProfileSnapshotResponse;
 import com.socialbondnet.users.model.response.UploadImageResponse;
 import com.socialbondnet.users.repository.UserProfileRepository;
 import com.socialbondnet.users.repository.UserRepository;
@@ -14,8 +15,13 @@ import com.socialbondnet.users.service.IUserService;
 import com.socialbondnet.users.service.ObjectStorage;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +85,26 @@ public class UserServiceImpl implements IUserService {
         p.setAvatarUrl(url);
         userProfileRepository.save(p);
         return new UploadImageResponse(url);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, ProfileSnapshotResponse>> getProfileSnapshots(List<String> userIds) {
+        List<UserProfile> profiles = userProfileRepository.findAllByUserIdIn(userIds);
+
+        if (profiles.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, ProfileSnapshotResponse> profileMap = profiles.stream()
+                .collect(Collectors.toMap(
+                        p -> p.getUser().getId(),
+                        p -> ProfileSnapshotResponse.builder()
+                                .avatarUrl(p.getAvatarUrl())
+                                .fullName(p.getFullName())
+                                .build()
+                ));
+
+        return ResponseEntity.ok(profileMap);
     }
 
     private UserProfile requireProfile(Users u) {

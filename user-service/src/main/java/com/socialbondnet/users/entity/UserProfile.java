@@ -39,7 +39,7 @@ public class UserProfile extends BaseEntity{
     private String location = null;
 
     @Column(name = "avatar_url")
-    private String avatarUrl = null;
+    private String avatarUrl ;
 
     @Column(name = "birth_date")
     private LocalDateTime birthDate;
