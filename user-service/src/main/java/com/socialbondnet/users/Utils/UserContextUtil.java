@@ -1,42 +1,62 @@
 package com.socialbondnet.users.Utils;
-import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+
+/**
+ * Utility class để lấy thông tin user từ headers được gửi từ API Gateway
+ */
 @Component
 public class UserContextUtil {
-    public Long getCurrentUserId() {
-        HttpServletRequest request = getCurrentRequest();
-        String userIdHeader = request.getHeader("X-User-Id");
-        return userIdHeader != null ? Long.valueOf(userIdHeader) : null;
+
+    /**
+     * Lấy current user ID từ header X-User-Id
+     */
+    public static String getCurrentUserId(String userIdHeader) {
+        if (userIdHeader == null || userIdHeader.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+        return userIdHeader.trim();
     }
 
-    public String getCurrentUsername() {
-        HttpServletRequest request = getCurrentRequest();
-        return request.getHeader("X-Username");
+    /**
+     * Lấy current username từ header X-Username
+     */
+    public static String getCurrentUsername(String usernameHeader) {
+        return usernameHeader != null ? usernameHeader.trim() : null;
     }
 
-    public String getCurrentUserRole() {
-        HttpServletRequest request = getCurrentRequest();
-        return request.getHeader("X-User-Role");
+    /**
+     * Lấy current user role từ header X-User-Role
+     */
+    public static String getCurrentUserRole(String roleHeader) {
+        return roleHeader != null ? roleHeader.trim() : null;
     }
 
-    public boolean isTokenValid() {
-        HttpServletRequest request = getCurrentRequest();
-        return "true".equals(request.getHeader("X-Token-Valid"));
+    /**
+     * Kiểm tra user có phải admin không
+     */
+    public static boolean isAdmin(String roleHeader) {
+        return "ADMIN".equals(getCurrentUserRole(roleHeader));
     }
 
-    public boolean isAdmin() {
-        return "ADMIN".equals(getCurrentUserRole());
+    /**
+     * Kiểm tra user có phải moderator không
+     */
+    public static boolean isModerator(String roleHeader) {
+        String role = getCurrentUserRole(roleHeader);
+        return "MODERATOR".equals(role) || "ADMIN".equals(role);
     }
 
-    public boolean isUser() {
-        String role = getCurrentUserRole();
-        return "USER".equals(role) || "ADMIN".equals(role);
-    }
+    /**
+     * Validate user có quyền truy cập resource không
+     */
+    public static boolean canAccessResource(String currentUserId, String resourceOwnerId, String roleHeader) {
+        // Owner luôn có quyền truy cập
+        if (currentUserId != null && currentUserId.equals(resourceOwnerId)) {
+            return true;
+        }
 
-    private HttpServletRequest getCurrentRequest() {
-        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-                .getRequest();
+        // Admin có quyền truy cập tất cả
+        return isAdmin(roleHeader);
     }
 }

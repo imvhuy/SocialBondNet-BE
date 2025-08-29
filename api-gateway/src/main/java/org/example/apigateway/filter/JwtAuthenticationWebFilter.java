@@ -2,6 +2,7 @@ package org.example.apigateway.filter;
 
 import lombok.RequiredArgsConstructor;
 import org.example.apigateway.Utils.JwtUtil;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class JwtAuthenticationWebFilter implements WebFilter {
                 if (jwtUtil.validateToken(jwtToken)) {
                     String username = jwtUtil.extractUsername(jwtToken);
                     String role = jwtUtil.extractRole(jwtToken);
+                    UUID userId = jwtUtil.extractUserId(jwtToken);
 
                     List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                     String roleWithPrefix = role.startsWith("ROLE_") ? role : "ROLE_" + role;
@@ -37,7 +40,19 @@ public class JwtAuthenticationWebFilter implements WebFilter {
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(username, null, authorities);
 
-                    return chain.filter(exchange)
+                    // Thêm headers X-User-Id và X-Username vào request
+                    ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
+                    if (userId != null) {
+                        requestBuilder.header("X-User-Id", userId.toString());
+                    }
+                    if (username != null) {
+                        requestBuilder.header("X-Username", username);
+                    }
+
+                    ServerHttpRequest modifiedRequest = requestBuilder.build();
+                    ServerWebExchange modifiedExchange = exchange.mutate().request(modifiedRequest).build();
+
+                    return chain.filter(modifiedExchange)
                             .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
                 }
             } catch (Exception e) {

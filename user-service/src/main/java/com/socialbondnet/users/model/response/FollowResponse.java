@@ -1,5 +1,6 @@
 package com.socialbondnet.users.model.response;
 
+import com.socialbondnet.users.enums.FollowStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,11 +8,12 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
-    private String accessToken;
-    private String refreshToken;
-    private String email;
+@AllArgsConstructor
+public class FollowResponse {
+    private String id;
+    private String followerId;
+    private String followingId;
+    private FollowStatus status;
     private String message;
 }

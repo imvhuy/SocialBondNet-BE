@@ -27,9 +27,15 @@ public class SecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(
-                            "/api/auth/**"
+                            "/api/auth/**",
+                                "/api/profile/**",
+                                "/files/**",
+                                "/api/posts/**",
+                                "/api/follows/**"
+
                         ).permitAll()
                         .pathMatchers("/api/users/test").hasRole("ADMIN")
                         .anyExchange().authenticated()

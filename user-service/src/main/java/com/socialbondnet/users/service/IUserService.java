@@ -15,10 +15,13 @@ import java.util.Map;
 
 public interface IUserService {
     ProfileResponse getPublicProfile(String userId, String viewerIdOrNull);
+    Object getPublicProfileByUsername(String username, String viewerIdOrNull);
     ProfileResponse getMyProfile(String userId);
     @Transactional
     ProfileResponse updateProfile(String userId, UpdateProfileRequest updateProfileRequest);
     @Transactional
     UploadImageResponse uploadAvatar(String userId, MultipartFile file);
     ResponseEntity<Map<String, ProfileSnapshotResponse>> getProfileSnapshots(List<String> userIds);
+    @Transactional
+    UploadImageResponse uploadCover(String userId, MultipartFile file);
 }

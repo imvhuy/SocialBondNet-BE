@@ -1,5 +1,6 @@
-package com.socialbondnet.users.model.response;
+package com.socialbondnet.users.model.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,9 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
-    private String accessToken;
+public class RefreshTokenRequest {
+    @NotBlank(message = "Refresh token không được để trống")
     private String refreshToken;
-    private String email;
-    private String message;
 }

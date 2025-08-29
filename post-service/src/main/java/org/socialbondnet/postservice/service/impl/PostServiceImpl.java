@@ -87,7 +87,7 @@ public class PostServiceImpl implements PostService {
         ServiceInstance instance = discoveryClient.getInstances(serviceName).stream().findFirst()
                 .orElseThrow(() -> new RuntimeException("No instances of user-service found"));
 
-        String url = instance.getUri().toString() + "/api/profiles/snapshots?userIds=" + String.join(",", userIds);
+        String url = instance.getUri().toString() + "/api/profile/snapshots?userIds=" + String.join(",", userIds);
 
         ResponseEntity<Map<String, ProfileSnapshotResponse>> response = restTemplate.exchange(
                 url,

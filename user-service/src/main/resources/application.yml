@@ -32,9 +32,14 @@ spring:
     task:
       scheduling:
         enabled: true
+
 server:
   port: 8081
 
+jwt:
+  secret: ${jwt-secret}
+  expiration: 180000
+  refresh-expiration: 3600000
 
 management:
   endpoints:
@@ -49,7 +54,9 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
-
-jwt:
-  secret: ${jwt-secret}
-  expiration: 1800000  # in milliseconds
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}

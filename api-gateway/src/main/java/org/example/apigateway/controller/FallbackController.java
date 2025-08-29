@@ -35,25 +35,26 @@ public class FallbackController {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
 
-//    @GetMapping("/posts")
-//    public ResponseEntity<Map<String, Object>> postsFallback() {
-//        Map<String, Object> response = Map.of(
-//                "message", "Posts Service is temporarily unavailable. Please try again later.",
-//                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
-//                "timestamp", Instant.now().toString(),
-//                "service", "post-service"
-//        );
-//        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
-//    }
-//
-//    @GetMapping("/admin")
-//    public ResponseEntity<Map<String, Object>> adminFallback() {
-//        Map<String, Object> response = Map.of(
-//                "message", "Admin Service is temporarily unavailable. Please try again later.",
-//                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
-//                "timestamp", Instant.now().toString(),
-//                "service", "admin-service"
-//        );
-//        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
-//    }
+    @GetMapping("/files")
+    public ResponseEntity<Map<String, Object>> filesFallback() {
+        Map<String, Object> response = Map.of(
+                "message", "File Service is temporarily unavailable. Please try again later.",
+                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "timestamp", Instant.now().toString(),
+                "service", "file-service"
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> profileFallback() {
+        Map<String, Object> response = Map.of(
+                "message", "Profile Service is temporarily unavailable. Please try again later.",
+                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "timestamp", Instant.now().toString(),
+                "service", "profile-service"
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
+
 }
