@@ -10,11 +10,14 @@ import com.socialbondnet.users.repository.UserRepository;
 import com.socialbondnet.users.service.IFollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -179,5 +182,18 @@ public class FollowServiceImpl implements IFollowService {
     @Override
     public long getPendingRequestsCount(String userId) {
         return followRepository.countPendingRequests(userId);
+    }
+
+    @Override
+    public ResponseEntity<List<String>> getFollowers(String userId) {
+        try {
+            List<Follows> follows = followRepository.findAllByFollowingId(userId);
+            List<String> followerIds = follows.stream()
+                    .map(Follows::getFollowerId)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(followerIds);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

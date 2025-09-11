@@ -2,7 +2,10 @@ package com.socialbondnet.users.service;
 
 
 import com.socialbondnet.users.model.response.FollowResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 public interface IFollowService {
     @Transactional
@@ -26,4 +29,6 @@ public interface IFollowService {
     long getFollowingCount(String userId);
 
     long getPendingRequestsCount(String userId);
+
+    ResponseEntity<List<String>> getFollowers(String userId);
 }

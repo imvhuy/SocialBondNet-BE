@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -29,4 +30,6 @@ public interface FollowRepository extends JpaRepository<Follows, String> {
     @Modifying
     @Query("DELETE FROM Follows f WHERE f.followerId = :followerId AND f.followingId = :followingId")
     void deleteByFollowerIdAndFollowingId(@Param("followerId") String followerId, @Param("followingId") String followingId);
+
+    List<Follows> findAllByFollowingId(String followingId);
 }

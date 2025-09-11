@@ -38,7 +38,7 @@ server:
 
 jwt:
   secret: ${jwt-secret}
-  expiration: 180000
+  expiration: 1800000
   refresh-expiration: 3600000
 
 management:

@@ -33,6 +33,13 @@ public class PostController {
         postRequest.setUserId(userId);
         return postService.addPost(postRequest);
     }
+    @GetMapping()
+    public ResponseEntity<PostResponse> getALlPosts(@RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size) {
+        return null;
+    }
+
+
     private String getUserIdByToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,7 +22,6 @@ public class FollowController {
     public ResponseEntity<FollowResponse> followUser(
             @PathVariable String targetUserId,
             @RequestHeader("X-User-Id") String currentUserId) {
-
         FollowResponse response = followService.followUser(currentUserId, targetUserId);
         return ResponseEntity.ok(response);
     }
@@ -97,5 +97,9 @@ public class FollowController {
             "isFollowed", isFollowed,
             "canFollow", canFollow
         ));
+    }
+    @GetMapping("/followers/{userId}")
+    public ResponseEntity<List<String>> getFollowers(@PathVariable String userId) {
+        return followService.getFollowers(userId);
     }
 }

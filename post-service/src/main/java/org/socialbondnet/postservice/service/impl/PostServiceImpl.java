@@ -3,10 +3,14 @@ package org.socialbondnet.postservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.socialbondnet.postservice.entity.PostUserMentions;
 import org.socialbondnet.postservice.entity.Posts;
+import org.socialbondnet.postservice.model.event.PostCreatedEvent;
 import org.socialbondnet.postservice.model.response.ProfileSnapshotResponse;
 import org.socialbondnet.postservice.model.request.PostRequest;
+import org.socialbondnet.postservice.publisher.RabbitMQProducer;
 import org.socialbondnet.postservice.repository.PostRepository;
 import org.socialbondnet.postservice.service.PostService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
@@ -23,6 +27,11 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final RestTemplate restTemplate;
     private final DiscoveryClient discoveryClient;
+    private final RabbitMQProducer rabbitMQProducer;
+    @Value("${rabbitmq.exchange.name}")
+    private String exchange;
+    @Value("${rabbitmq.routing.key}")
+    private String routingKey;
 
     @Override
     public ResponseEntity<String> addPost(PostRequest postRequest) {
@@ -75,7 +84,18 @@ public class PostServiceImpl implements PostService {
             }
 
             postRepository.save(posts);
-
+            PostCreatedEvent event = PostCreatedEvent.builder()
+                    .postId(posts.getId())
+                    .userId(posts.getUserId())
+                    .title(posts.getTitle())
+                    .imageUrl(posts.getImageUrl())
+                    .visibility(posts.getVisibility())
+                    .displayNameSnapshot(posts.getDisplayNameSnapshot())
+                    .avatarUrlSnapshot(posts.getAvatarUrlSnapshot())
+                    .mentionedUserIds(postRequest.getMentionedUserIds())
+                    .createdAt(posts.getCreatedAt())
+                    .build();
+            rabbitMQProducer.sendMessage(event);
             return ResponseEntity.ok("Tạo bài viết thành công");
         } catch (Exception e) {
             return ResponseEntity.internalServerError()

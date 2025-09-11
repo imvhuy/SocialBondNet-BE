@@ -1,0 +1,28 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.1.4-management
+    container_name: socialbondnet
+    hostname: socialbondnet
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: 123456
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - socialbondnet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  socialbondnet-network:
+    driver: bridge
